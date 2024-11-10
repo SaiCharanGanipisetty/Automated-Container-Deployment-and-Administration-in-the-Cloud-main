@@ -1,0 +1,37 @@
+---
+- name: Deploy Docker container with Flask app
+  hosts: all
+  become: true
+
+  tasks:
+    - name: Update APT cache
+      apt:
+        update_cache: yes
+
+    - name: Install Docker
+      apt:
+        name: docker.io
+        state: present
+
+    - name: Ensure Docker service is started
+      systemd:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Build the Flask Docker image
+      docker_image:
+        build:
+          path: ./flask
+        name: flask-app
+        tag: latest
+
+    - name: Run Flask app container
+      docker_container:
+        name: flask-app
+        image: flask-app:latest
+        state: started
+        exposed_ports:
+          - "5000"
+        published_ports:
+          - "5000:5000"
